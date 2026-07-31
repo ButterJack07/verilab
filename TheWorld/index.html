@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The World · 文明经营</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Georgia", "Times New Roman", "Songti SC", "SimSun", serif;
+    color: #6b6f63;
+    background: #f5efe2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 28px 16px;
+  }
+  #app {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    align-items: center;
+  }
+  header { text-align: center; user-select: none; }
+  h1 {
+    font-size: 40px;
+    font-weight: 500;
+    letter-spacing: 10px;
+    text-indent: 10px;
+    color: #5e6e55;
+  }
+  .subtitle {
+    margin-top: 6px;
+    font-size: 12px;
+    letter-spacing: 7px;
+    text-indent: 7px;
+    color: #a8a99a;
+  }
+  .status { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .info-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(170, 166, 146, 0.35);
+    background: rgba(255, 255, 255, 0.55);
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: #909184;
+    user-select: none;
+  }
+  .info-row b { color: #5e6e55; font-weight: 600; font-size: 13px; }
+  .frame {
+    position: relative;
+    padding: 18px;
+    border-radius: 20px;
+    background: rgba(255, 253, 247, 0.62);
+    border: 1px solid rgba(180, 176, 156, 0.35);
+    box-shadow:
+      0 24px 70px rgba(150, 140, 110, 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  canvas {
+    display: block;
+    border-radius: 10px;
+    box-shadow: 0 14px 44px rgba(150, 140, 110, 0.28);
+    cursor: crosshair;
+  }
+  .bar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 14px;
+  }
+  .controls {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 10;
+  }
+  button {
+    font-family: inherit;
+    font-size: 13px;
+    letter-spacing: 2px;
+    color: #5e6e55;
+    background: #ede6d3;
+    border: 1px solid rgba(140, 150, 120, 0.4);
+    padding: 8px 24px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    user-select: none;
+  }
+  button.play-btn {
+    width: 46px;
+    height: 46px;
+    padding: 0;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    letter-spacing: 0;
+    font-size: 14px;
+    line-height: 1;
+  }
+  button.play-btn span { line-height: 1; }
+  button.play-btn b { font-size: 9px; font-weight: 600; letter-spacing: 0; }
+  button.active {
+    background: #e2d9c1;
+    border-color: rgba(212, 178, 106, 0.65);
+    box-shadow: 0 0 14px rgba(212, 178, 106, 0.35);
+  }
+  button:hover {
+    background: #e2d9c1;
+    border-color: rgba(120, 135, 100, 0.6);
+    box-shadow: 0 6px 20px rgba(150, 140, 110, 0.25);
+  }
+  button:active { transform: translateY(1px); }
+  #coord {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: #a8a99a;
+    letter-spacing: 1px;
+    user-select: none;
+  }
+  .stage {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    justify-content: center;
+  }
+  .side {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .side-bottom {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+  }
+  .info-card {
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .top-right {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 10;
+  }
+  .pop-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(170, 166, 146, 0.35);
+    background: rgba(255, 255, 255, 0.55);
+    font-size: 13px;
+    letter-spacing: 1px;
+    color: #909184;
+    user-select: none;
+  }
+  .pop-pill b { color: #5e6e55; font-weight: 600; }
+  .pop-pill.civ {
+    border-color: rgba(212, 178, 106, 0.45);
+    background: rgba(255, 253, 247, 0.7);
+  }
+  .pop-pill.civ b { color: #a3823f; font-weight: 600; }
+  .panel-title {
+    font-size: 14px;
+    letter-spacing: 4px;
+    color: #8a8c7c;
+    margin-bottom: 14px;
+    text-align: center;
+    user-select: none;
+  }
+  .inventory {
+    position: relative;
+    width: 336px;
+    height: 168px;
+    background-color: rgba(255, 255, 255, 0.4);
+    background-image:
+      linear-gradient(to right, rgba(170, 166, 146, 0.4) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(170, 166, 146, 0.4) 1px, transparent 1px);
+    background-size: 42px 42px;
+    border: 1px solid rgba(170, 166, 146, 0.4);
+    transition: box-shadow 0.3s ease;
+  }
+  .inventory.gain { box-shadow: 0 0 22px rgba(214, 192, 143, 0.55); }
+  .crafting {
+    position: relative;
+    width: 126px;
+    height: 126px;
+    background-color: rgba(255, 255, 255, 0.4);
+    background-image:
+      linear-gradient(to right, rgba(170, 166, 146, 0.4) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(170, 166, 146, 0.4) 1px, transparent 1px);
+    background-size: 42px 42px;
+    border: 1px solid rgba(170, 166, 146, 0.4);
+  }
+  .inv-item {
+    position: absolute;
+    cursor: grab;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    transition: opacity 0.15s ease;
+  }
+  .inv-item:hover { opacity: 0.85; }
+  .inv-item.dragging { opacity: 0.35; cursor: grabbing; }
+  .inv-item.longpress {
+    box-shadow: 0 0 0 2px rgba(212, 178, 106, 0.85), 0 0 12px rgba(212, 178, 106, 0.4);
+  }
+  .whole-badge {
+    position: absolute;
+    left: 1px;
+    top: 1px;
+    font-size: 8px;
+    line-height: 10px;
+    padding: 0 2px;
+    color: #fff;
+    background: rgba(168, 130, 50, 0.85);
+    border-radius: 2px;
+    letter-spacing: 0;
+  }
+  .drag-hint {
+    position: fixed;
+    z-index: 100;
+    pointer-events: none;
+    padding: 4px 12px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #fff;
+    background: rgba(168, 130, 50, 0.92);
+    border-radius: 999px;
+    box-shadow: 0 4px 14px rgba(150, 120, 60, 0.35);
+    display: none;
+    white-space: nowrap;
+  }
+  .count {
+    position: absolute;
+    right: 1px;
+    bottom: 1px;
+    min-width: 11px;
+    height: 12px;
+    padding: 0 2px;
+    font-size: 9px;
+    line-height: 12px;
+    text-align: center;
+    color: #fff;
+    background: rgba(70, 70, 60, 0.78);
+    border-radius: 2px;
+    font-family: inherit;
+  }
+  .preview {
+    position: absolute;
+    border: 3px solid rgba(94, 183, 224, 0.6);
+    background: rgba(94, 183, 224, 0.08);
+    box-shadow: 0 0 14px rgba(94, 183, 224, 0.35), inset 0 0 6px rgba(94, 183, 224, 0.2);
+    box-sizing: border-box;
+    pointer-events: none;
+    display: none;
+    z-index: 5;
+  }
+  .craft-result {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .craft-out {
+    flex: 1;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: #909184;
+    text-align: center;
+    user-select: none;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .craft-btn {
+    font-size: 12px;
+    padding: 6px 14px;
+    letter-spacing: 2px;
+    flex-shrink: 0;
+  }
+  .craft-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  .swatch {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 2px;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>The World</h1>
+    <div class="subtitle" id="date">1 年 1 天</div>
+  </header>
+
+  <div class="top-right">
+    <div class="pop-pill">人口 <b id="pop">1 / 5</b></div>
+    <div class="pop-pill civ">文明程度 <b id="civ">0</b></div>
+  </div>
+
+  <div class="stage">
+    <div class="frame">
+      <canvas id="map"></canvas>
+      <div class="bar">
+        <div id="coord"></div>
+      </div>
+    </div>
+    <div class="side">
+      <div class="frame info-card">
+        <div class="status">
+          <div class="info-row">
+            <span>茅草屋 · 每 10 秒产出食物</span>
+            <b id="prodAmount">+1</b>
+          </div>
+        </div>
+      </div>
+      <div class="side-bottom">
+        <div class="frame">
+          <h2 class="panel-title">物品栏</h2>
+          <div class="inventory" id="inventory"></div>
+        </div>
+        <div class="frame">
+          <h2 class="panel-title">合成器</h2>
+          <div class="crafting" id="crafting"></div>
+          <div class="craft-result">
+            <span class="craft-out" id="craftOut">未组合出配方</span>
+            <button id="craftBtn" class="craft-btn" disabled>合成</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="controls">
+    <button id="restart">重新开始</button>
+    <button id="playBtn" class="play-btn"><span id="playIcon">❚❚</span><b id="speedLabel">1x</b></button>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const MAP_W = 30;
+  const MAP_H = 20;
+  const CELL = 30;
+
+  const TILE = { OCEAN: 0, LAND: 1 };
+
+  const canvas = document.getElementById('map');
+  const ctx = canvas.getContext('2d');
+  canvas.width = MAP_W * CELL;
+  canvas.height = MAP_H * CELL;
+
+  const coordEl = document.getElementById('coord');
+  const dateEl = document.getElementById('date');
+  const popEl = document.getElementById('pop');
+  const civEl = document.getElementById('civ');
+  const prodAmountEl = document.getElementById('prodAmount');
+  const inventoryEl = document.getElementById('inventory');
+  const playBtn = document.getElementById('playBtn');
+  const playIcon = document.getElementById('playIcon');
+  const speedLabel = document.getElementById('speedLabel');
+
+  // 模式: 0 = 1倍速运行, 1 = 2倍速运行, 2 = 暂停
+  let mode = 0;
+  let paused = false;
+  let speed = 1;
+
+  function applyMode() {
+    if (mode === 0) { paused = false; speed = 1; }
+    else if (mode === 1) { paused = false; speed = 2; }
+    else { paused = true; speed = 1; }
+  }
+  function updateControls() {
+    if (mode === 2) {
+      playIcon.textContent = '❚❚';
+      speedLabel.textContent = '已暂停';
+      playBtn.title = '已暂停 · 点击开始';
+    } else {
+      playIcon.textContent = '▶';
+      speedLabel.textContent = (mode === 1 ? '2x' : '1x');
+      playBtn.title = mode === 1 ? '2倍速 · 点击暂停' : '1倍速 · 点击加速';
+    }
+    playBtn.classList.toggle('active', mode === 1);
+  }
+  playBtn.addEventListener('click', () => {
+    mode = (mode + 1) % 3;
+    applyMode();
+    updateControls();
+    saveState();
+  });
+  updateControls();
+
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  };
+
+  const SEED_KEY = 'tw-seed';
+  let seed = parseInt(store.get(SEED_KEY), 10);
+  if (!Number.isInteger(seed) || seed < 0) {
+    seed = Math.floor(Math.random() * 1e9);
+    store.set(SEED_KEY, String(seed));
+  }
+
+  // ---------- 噪声 ----------
+  function hash(x, y) {
+    let h = (x * 374761393 + y * 668265263) | 0;
+    h = (h ^ (h >> 13)) | 0;
+    h = Math.imul(h, 1274126177);
+    return ((h ^ (h >> 16)) >>> 0) / 4294967296;
+  }
+  function noise2(x, y) {
+    const ix = Math.floor(x), iy = Math.floor(y);
+    const fx = x - ix, fy = y - iy;
+    const sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy);
+    const a = hash(ix, iy), b = hash(ix + 1, iy);
+    const c = hash(ix, iy + 1), d = hash(ix + 1, iy + 1);
+    const top = a + (b - a) * sx, bot = c + (d - c) * sx;
+    return top + (bot - top) * sy;
+  }
+
+  // ---------- 地图生成 ----------
+  function edgeDist(x, y) {
+    return Math.min(x, y, MAP_W - 1 - x, MAP_H - 1 - y);
+  }
+  function removeLakes(map) {
+    const seen = Array.from({ length: MAP_H }, () => Array(MAP_W).fill(false));
+    const q = [];
+    const push = (x, y) => {
+      if (map[y][x] !== TILE.OCEAN || seen[y][x]) return;
+      seen[y][x] = true;
+      q.push([x, y]);
+    };
+    for (let x = 0; x < MAP_W; x++) { push(x, 0); push(x, MAP_H - 1); }
+    for (let y = 0; y < MAP_H; y++) { push(0, y); push(MAP_W - 1, y); }
+    let head = 0;
+    while (head < q.length) {
+      const [x, y] = q[head++];
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nx = x + dx, ny = y + dy;
+        if (nx < 0 || nx >= MAP_W || ny < 0 || ny >= MAP_H) continue;
+        push(nx, ny);
+      }
+    }
+    for (let y = 0; y < MAP_H; y++)
+      for (let x = 0; x < MAP_W; x++)
+        if (map[y][x] === TILE.OCEAN && !seen[y][x]) map[y][x] = TILE.LAND;
+    return map;
+  }
+  function oceanPct(map) {
+    return map.reduce((s, r) => s + r.filter(v => v === TILE.OCEAN).length, 0) / (MAP_W * MAP_H);
+  }
+  function generateMap(seed) {
+    const ox = hash(seed, 13) * 1000;
+    const oy = hash(seed, 29) * 1000;
+    let lo = 0, hi = 1.2, best = null;
+    for (let attempt = 0; attempt < 30; attempt++) {
+      const threshold = (lo + hi) / 2;
+      let map = Array.from({ length: MAP_H }, (_, y) =>
+        Array.from({ length: MAP_W }, (_, x) => {
+          const bias = 1 - edgeDist(x, y) / 9 + (noise2((x + ox) / 4, (y + oy) / 4) - 0.5) * 1.2;
+          return bias > threshold ? TILE.OCEAN : TILE.LAND;
+        }));
+      removeLakes(map);
+      const pct = oceanPct(map);
+      if (pct >= 0.15 && pct <= 0.30) return map;
+      if (best === null || Math.abs(pct - 0.225) < Math.abs(best.pct - 0.225)) best = { map, pct };
+      if (pct < 0.15) hi = threshold; else lo = threshold;
+    }
+    return best.map;
+  }
+
+  let world = { map: generateMap(seed) };
+
+  // ---------- 物品 ----------
+  const ITEMS = [
+    { id: 'wood',   name: '木材', color: '#c0b283', w: 1, h: 1 },
+    { id: 'stone',  name: '石头', color: '#aaa69b', w: 1, h: 1 },
+    { id: 'iron',   name: '铁矿', color: '#8a9a7b', w: 1, h: 1 },
+    { id: 'food',   name: '食物', color: '#d6c08f', w: 1, h: 1 },
+    { id: 'cloth',  name: '布匹', color: '#c9b8b3', w: 1, h: 1 },
+    { id: 'gold',   name: '金矿', color: '#cfa86a', w: 1, h: 1 },
+    { id: 'plank',  name: '木板', color: '#b7a678', w: 2, h: 1 },
+    { id: 'brick',  name: '砖块', color: '#c49a83', w: 2, h: 2 },
+  ];
+
+  // ---------- 建筑 ----------
+  const BUILDINGS = {
+    hut: {
+      id: 'hut',
+      name: '茅草屋',
+      produce: { item: 'food' },
+      interval: 10,
+      capacity: 5,
+    }
+  };
+
+  // ---------- 物品栏 ----------
+  const INV_COLS = 8;
+  const INV_ROWS = 4;
+  const INV_CELL = 42;
+
+  let placed = [];
+  let dragContext = null;   // { id, from: 'inventory' | 'crafting', whole: boolean }
+  let longPress = false;    // 长按 2s 后拖动 = 整组
+  let pressTimer = null;
+
+  function occupancy(list, cols, rows) {
+    const occ = Array.from({ length: rows }, () => Array(cols).fill(null));
+    list.forEach((p, i) => {
+      for (let r = p.row; r < p.row + p.item.h; r++)
+        for (let c = p.col; c < p.col + p.item.w; c++) occ[r][c] = i;
+    });
+    return occ;
+  }
+  function canPlace(item, col, row, list, cols, rows, ignoreIdx) {
+    if (col < 0 || row < 0 || col + item.w > cols || row + item.h > rows) return false;
+    const occ = occupancy(list, cols, rows);
+    for (let r = row; r < row + item.h; r++)
+      for (let c = col; c < col + item.w; c++)
+        if (occ[r][c] !== null && occ[r][c] !== ignoreIdx) return false;
+    return true;
+  }
+  function findFreeSpot(item, list, cols, rows) {
+    for (let row = 0; row <= rows - item.h; row++)
+      for (let col = 0; col <= cols - item.w; col++)
+        if (canPlace(item, col, row, list, cols, rows)) return { col, row };
+    return null;
+  }
+  function initInventory() {
+    const list = [];
+    const add = (id, count) => {
+      const item = ITEMS.find(i => i.id === id);
+      const spot = findFreeSpot(item, list, INV_COLS, INV_ROWS);
+      if (spot) list.push({ item, col: spot.col, row: spot.row, count });
+    };
+    add('wood', 2);
+    add('stone', 1);
+    return list;
+  }
+  function addItemToInventory(id, amount) {
+    const existing = placed.find(p => p.item.id === id);
+    if (existing) {
+      existing.count += amount;
+      flashInventory();
+      renderInventory();
+      return true;
+    }
+    const item = ITEMS.find(i => i.id === id);
+    const spot = findFreeSpot(item, placed, INV_COLS, INV_ROWS);
+    if (!spot) return false;
+    placed.push({ item, col: spot.col, row: spot.row, count: amount });
+    flashInventory();
+    renderInventory();
+    return true;
+  }
+
+  let gainTimer = null;
+  function flashInventory() {
+    inventoryEl.classList.add('gain');
+    clearTimeout(gainTimer);
+    gainTimer = setTimeout(() => inventoryEl.classList.remove('gain'), 500);
+  }
+
+  // ---------- 状态持久化 ----------
+  const GAME_KEY = 'tw-game';
+
+  function findHutSpot() {
+    let list = [];
+    for (let y = 7; y <= 12; y++)
+      for (let x = 12; x <= 17; x++)
+        if (world.map[y][x] === TILE.LAND) list.push([x, y]);
+    if (!list.length) {
+      for (let y = 0; y < MAP_H; y++)
+        for (let x = 0; x < MAP_W; x++)
+          if (world.map[y][x] === TILE.LAND) list.push([x, y]);
+    }
+    const [hx, hy] = list[Math.floor(hash(seed, 77) * list.length)];
+    return { x: hx, y: hy };
+  }
+
+  // ---------- 合成器 ----------
+  const CRAFT_COLS = 3;
+  const CRAFT_ROWS = 3;
+  const CRAFT_CELL = 42;
+  const craftingEl = document.getElementById('crafting');
+  const craftOutEl = document.getElementById('craftOut');
+  const craftBtn = document.getElementById('craftBtn');
+  let craftingItems = [];
+
+  // ---------- 合成配方 ----------
+  const RECIPES = [
+    { out: 'plank', req: [{ id: 'wood', n: 2 }] },
+    { out: 'brick', req: [{ id: 'stone', n: 2 }, { id: 'iron', n: 1 }] },
+    { out: 'cloth', req: [{ id: 'wood', n: 1 }, { id: 'stone', n: 1 }] },
+    { out: 'gold',  req: [{ id: 'iron', n: 2 }, { id: 'wood', n: 1 }] }
+  ];
+
+  function canAddToInventory(id, amount) {
+    if (placed.find(p => p.item.id === id)) return true;
+    const item = ITEMS.find(i => i.id === id);
+    return !!findFreeSpot(item, placed, INV_COLS, INV_ROWS);
+  }
+  function findRecipe() {
+    return RECIPES.find(r => r.req.every(q => {
+      const n = craftingItems.filter(p => p.item.id === q.id).reduce((s, p) => s + p.count, 0);
+      return n >= q.n;
+    }));
+  }
+  function updateCraftResult() {
+    const r = findRecipe();
+    craftBtn.disabled = !r;
+    const out = r && ITEMS.find(i => i.id === r.out);
+    if (out) {
+      craftOutEl.innerHTML = '';
+      const sw = document.createElement('span');
+      sw.className = 'swatch';
+      sw.style.background = out.color;
+      const tx = document.createElement('span');
+      tx.textContent = out.name;
+      craftOutEl.appendChild(sw);
+      craftOutEl.appendChild(tx);
+    } else {
+      craftOutEl.textContent = '未组合出配方';
+    }
+  }
+  craftBtn.addEventListener('click', () => {
+    const r = findRecipe();
+    if (!r) return;
+    if (!canAddToInventory(r.out, 1)) return;
+    r.req.forEach(q => {
+      let need = q.n;
+      for (let i = 0; i < craftingItems.length && need > 0; i++) {
+        const p = craftingItems[i];
+        if (p.item.id !== q.id) continue;
+        const take = Math.min(need, p.count);
+        p.count -= take;
+        need -= take;
+        if (p.count <= 0) { craftingItems.splice(i, 1); i--; }
+      }
+    });
+    addItemToInventory(r.out, 1);
+    renderCrafting();
+    saveState();
+  });
+
+  function resetState() {
+    placed = initInventory();
+    craftingItems = [];
+    const hut = findHutSpot();
+    const first = findVillagerSpot(hut, []);
+    state = { villagers: first ? 1 : 0, villagersCells: first ? [first] : [], hut, civ: 0, day: 1 };
+    displayDay = state.day;
+    saveState();
+  }
+
+  function saveState() {
+    store.set(GAME_KEY, JSON.stringify({
+      seed,
+      villagers: state.villagers,
+      villagersCells: state.villagersCells,
+      hut: state.hut,
+      civ: state.civ,
+      day: state.day,
+      placed: placed.map(p => ({ id: p.item.id, col: p.col, row: p.row, count: p.count })),
+      crafting: craftingItems.map(p => ({ id: p.item.id, col: p.col, row: p.row, count: p.count }))
+    }));
+  }
+
+  let state;
+  let displayDay = 1;
+  (function loadState() {
+    let saved = null;
+    try { saved = JSON.parse(store.get(GAME_KEY)); } catch (e) { saved = null; }
+    if (saved && saved.seed === seed && saved.hut) {
+      state = {
+        villagers: saved.villagers || 1,
+        villagersCells: Array.isArray(saved.villagersCells) ? saved.villagersCells : [],
+        hut: saved.hut,
+        civ: saved.civ || 0,
+        day: saved.day || 1
+      };
+      displayDay = state.day;
+      placed = (saved.placed || []).map(p => {
+        const item = ITEMS.find(i => i.id === p.id);
+        return item ? { item, col: p.col, row: p.row, count: p.count || 1 } : null;
+      }).filter(Boolean);
+      craftingItems = (saved.crafting || []).map(p => {
+        const item = ITEMS.find(i => i.id === p.id);
+        return item ? { item, col: p.col, row: p.row, count: p.count || 1 } : null;
+      }).filter(Boolean);
+      while (state.villagersCells.length < state.villagers) {
+        const spot = findVillagerSpot(state.hut, state.villagersCells);
+        if (!spot) break;
+        state.villagersCells.push(spot);
+      }
+    } else {
+      resetState();
+    }
+  })();
+
+  document.getElementById('restart').addEventListener('click', () => {
+    seed = Math.floor(Math.random() * 1e9);
+    store.set(SEED_KEY, String(seed));
+    world.map = generateMap(seed);
+    resetState();
+    renderInventory();
+    renderCrafting();
+    updateStatus();
+    drawWorld();
+  });
+
+  // ---------- 小人（生产力）：占据一个格子的圆形，静止不动 ----------
+  function findVillagerSpot(hut, existingCells) {
+    const used = new Set([hut.x + ',' + hut.y]);
+    existingCells.forEach(v => used.add(v.x + ',' + v.y));
+    for (let r = 1; r <= 5; r++) {
+      for (let dy = -r; dy <= r; dy++) {
+        for (let dx = -r; dx <= r; dx++) {
+          if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+          const x = hut.x + dx, y = hut.y + dy;
+          if (x < 0 || x >= MAP_W || y < 0 || y >= MAP_H) continue;
+          if (world.map[y][x] !== TILE.LAND) continue;
+          if (used.has(x + ',' + y)) continue;
+          return { x, y };
+        }
+      }
+    }
+    return null;
+  }
+
+  // ---------- 绘制 ----------
+  const OCEAN_COLOR = '#a4becb';
+  const LAND_COLOR  = '#b5c5a3';
+  const GRID_LINE   = 'rgba(255, 253, 247, 0.5)';
+
+  function drawHut(px, py) {
+    const cx = px + CELL / 2;
+    const base = py + CELL - 3;
+    // 墙体
+    ctx.fillStyle = '#e6d6b0';
+    ctx.fillRect(cx - 9, base - 13, 18, 13);
+    ctx.strokeStyle = 'rgba(120, 100, 70, 0.45)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(cx - 9.5, base - 13.5, 19, 14);
+    // 门
+    ctx.fillStyle = '#8a6a4f';
+    ctx.fillRect(cx - 2, base - 7, 4, 7);
+    // 屋顶（茅草）
+    ctx.fillStyle = '#c8a06a';
+    ctx.beginPath();
+    ctx.moveTo(cx - 13, base - 13);
+    ctx.lineTo(cx + 13, base - 13);
+    ctx.lineTo(cx + 6, base - 24);
+    ctx.lineTo(cx - 6, base - 24);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(120, 90, 50, 0.5)';
+    ctx.stroke();
+    // 茅草纹理
+    ctx.strokeStyle = 'rgba(140, 105, 60, 0.35)';
+    for (let i = -2; i <= 2; i++) {
+      ctx.beginPath();
+      ctx.moveTo(cx - 5 + i * 3, base - 13);
+      ctx.lineTo(cx - 3 + i * 3, base - 22);
+      ctx.stroke();
+    }
+  }
+
+  function drawVillagers() {
+    state.villagersCells.forEach(v => {
+      const cx = v.x * CELL + CELL / 2;
+      const cy = v.y * CELL + CELL / 2;
+      // 圆形主体
+      ctx.fillStyle = '#c0a078';
+      ctx.beginPath();
+      ctx.arc(cx, cy, 9, 0, Math.PI * 2);
+      ctx.fill();
+      // 顶部柔光
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+      ctx.beginPath();
+      ctx.arc(cx, cy - 2, 6, 0, Math.PI * 2);
+      ctx.fill();
+      // 描边
+      ctx.strokeStyle = 'rgba(120, 90, 60, 0.5)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 9, 0, Math.PI * 2);
+      ctx.stroke();
+    });
+  }
+
+  function drawWorld() {
+    const map = world.map;
+    ctx.fillStyle = '#f5efe2';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    for (let y = 0; y < MAP_H; y++) {
+      for (let x = 0; x < MAP_W; x++) {
+        ctx.fillStyle = map[y][x] === TILE.OCEAN ? OCEAN_COLOR : LAND_COLOR;
+        ctx.fillRect(x * CELL, y * CELL, CELL, CELL);
+        ctx.strokeStyle = GRID_LINE;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x * CELL + 0.5, y * CELL + 0.5, CELL - 1, CELL - 1);
+      }
+    }
+    drawHut(state.hut.x * CELL, state.hut.y * CELL);
+    drawVillagers();
+  }
+
+  // 悬停显示坐标
+  canvas.addEventListener('mousemove', (e) => {
+    const r = canvas.getBoundingClientRect();
+    const gx = Math.floor((e.clientX - r.left) / CELL);
+    const gy = Math.floor((e.clientY - r.top) / CELL);
+    if (gx >= 0 && gx < MAP_W && gy >= 0 && gy < MAP_H) {
+      coordEl.textContent = `( ${gx}, ${gy} )`;
+    }
+  });
+  canvas.addEventListener('mouseleave', () => { coordEl.textContent = ''; });
+
+  // ---------- 物品栏渲染与拖动 ----------
+  const previewEl = document.createElement('div');
+  previewEl.className = 'preview';
+  inventoryEl.appendChild(previewEl);
+
+  function cellAt(e) {
+    const r = inventoryEl.getBoundingClientRect();
+    return {
+      col: Math.floor((e.clientX - r.left) / INV_CELL),
+      row: Math.floor((e.clientY - r.top) / INV_CELL)
+    };
+  }
+  function showPreview(col, row, w, h) {
+    previewEl.style.display = 'block';
+    previewEl.style.left = col * INV_CELL + 'px';
+    previewEl.style.top = row * INV_CELL + 'px';
+    previewEl.style.width = w * INV_CELL + 'px';
+    previewEl.style.height = h * INV_CELL + 'px';
+  }
+  function hidePreview() { previewEl.style.display = 'none'; }
+
+  // 绑定物品元素的长按与拖拽：默认拖动 1 个，长按 2s 后拖动整组
+  const dragHint = document.createElement('div');
+  dragHint.className = 'drag-hint';
+  dragHint.textContent = '整组移动';
+  document.body.appendChild(dragHint);
+
+  function showDragHint(el) {
+    const rect = el.getBoundingClientRect();
+    dragHint.style.display = 'block';
+    dragHint.style.left = rect.left + rect.width / 2 + 'px';
+    dragHint.style.top = rect.top - 26 + 'px';
+    dragHint.style.transform = 'translateX(-50%)';
+  }
+  function hideDragHint() { dragHint.style.display = 'none'; }
+
+  function bindDrag(el, p, from) {
+    el.addEventListener('mousedown', () => {
+      longPress = false;
+      clearTimeout(pressTimer);
+      pressTimer = setTimeout(() => {
+        longPress = true;
+        el.classList.add('longpress');
+        showDragHint(el);
+        if (!el.querySelector('.whole-badge')) {
+          const b = document.createElement('span');
+          b.className = 'whole-badge';
+          b.textContent = '整组';
+          el.appendChild(b);
+        }
+      }, 2000);
+    });
+    el.addEventListener('mouseup', () => {
+      clearTimeout(pressTimer);
+      el.classList.remove('longpress');
+      hideDragHint();
+      const b = el.querySelector('.whole-badge');
+      if (b) b.remove();
+    });
+    el.addEventListener('mouseleave', () => {
+      clearTimeout(pressTimer);
+      el.classList.remove('longpress');
+      hideDragHint();
+      const b = el.querySelector('.whole-badge');
+      if (b) b.remove();
+    });
+    el.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', p.item.id);
+      e.dataTransfer.setDragImage(el, 20, 20);
+      dragContext = { id: p.item.id, from, whole: longPress, entry: p };
+      el.classList.add('dragging');
+      clearTimeout(pressTimer);
+      el.classList.remove('longpress');
+      hideDragHint();
+      const b = el.querySelector('.whole-badge');
+      if (b) b.remove();
+    });
+    el.addEventListener('dragend', () => {
+      dragContext = null;
+      longPress = false;
+      el.classList.remove('dragging');
+      el.classList.remove('longpress');
+      hideDragHint();
+      const b = el.querySelector('.whole-badge');
+      if (b) b.remove();
+      hidePreview();
+      hideCraftPreview();
+    });
+  }
+
+  // 判断当前拖动能否放入物品栏 (col,row)
+  function overlap(aCol, aRow, aItem, b) {
+    return aCol < b.col + b.item.w && aCol + aItem.w > b.col &&
+           aRow < b.row + b.item.h && aRow + aItem.h > b.row;
+  }
+  function mergeTargetIn(grid, excludeEntry, item, col, row) {
+    return grid.find(g => g !== excludeEntry && g.item.id === item.id && overlap(col, row, item, g));
+  }
+  function canDropInventory(item, col, row) {
+    if (mergeTargetIn(placed, dragContext.from === 'inventory' ? dragContext.entry : null, item, col, row)) return true;
+    if (dragContext.from === 'inventory') {
+      const idx = placed.indexOf(dragContext.entry);
+      if (idx < 0) return false;
+      const srcCount = placed[idx].count;
+      if (dragContext.whole || srcCount === 1)
+        return canPlace(item, col, row, placed, INV_COLS, INV_ROWS, idx);
+      return canPlace(item, col, row, placed, INV_COLS, INV_ROWS);
+    }
+    return canPlace(item, col, row, placed, INV_COLS, INV_ROWS);
+  }
+
+  // 判断当前拖动能否放入合成器 (col,row)
+  function canDropCrafting(item, col, row) {
+    if (mergeTargetIn(craftingItems, dragContext.from === 'crafting' ? dragContext.entry : null, item, col, row)) return true;
+    if (dragContext.from === 'crafting') {
+      const idx = craftingItems.indexOf(dragContext.entry);
+      if (idx < 0) return false;
+      const srcCount = craftingItems[idx].count;
+      if (dragContext.whole || srcCount === 1)
+        return canPlace(item, col, row, craftingItems, CRAFT_COLS, CRAFT_ROWS, idx);
+      return canPlace(item, col, row, craftingItems, CRAFT_COLS, CRAFT_ROWS);
+    }
+    return canPlace(item, col, row, craftingItems, CRAFT_COLS, CRAFT_ROWS);
+  }
+
+  function renderInventory() {
+    inventoryEl.querySelectorAll('.inv-item').forEach(n => n.remove());
+    placed.forEach(p => {
+      const el = document.createElement('div');
+      el.className = 'inv-item';
+      el.draggable = true;
+      el.title = p.item.name;
+      el.style.background = p.item.color;
+      el.style.left = p.col * INV_CELL + 1 + 'px';
+      el.style.top = p.row * INV_CELL + 1 + 'px';
+      el.style.width = p.item.w * INV_CELL - 2 + 'px';
+      el.style.height = p.item.h * INV_CELL - 2 + 'px';
+      if (p.count > 1) {
+        const b = document.createElement('span');
+        b.className = 'count';
+        b.textContent = p.count;
+        el.appendChild(b);
+      }
+      bindDrag(el, p, 'inventory');
+      inventoryEl.appendChild(el);
+    });
+  }
+
+  inventoryEl.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    if (!dragContext) return;
+    const item = ITEMS.find(i => i.id === dragContext.id);
+    if (!item) return;
+    const { col, row } = cellAt(e);
+    if (canDropInventory(item, col, row)) showPreview(col, row, item.w, item.h);
+    else hidePreview();
+  });
+
+  inventoryEl.addEventListener('drop', (e) => {
+    e.preventDefault();
+    if (!dragContext) return;
+    const item = ITEMS.find(i => i.id === dragContext.id);
+    if (!item) return;
+    const { col, row } = cellAt(e);
+    if (dragContext.from === 'inventory') {
+      const idx = placed.indexOf(dragContext.entry);
+      if (idx < 0) { hidePreview(); return; }
+      if (!canDropInventory(item, col, row)) { hidePreview(); return; }
+      const src = placed[idx];
+      const moveAmt = dragContext.whole ? src.count : 1;
+      src.count -= moveAmt;
+      if (src.count <= 0) placed.splice(idx, 1);
+      const mt = mergeTargetIn(placed, src, item, col, row);
+      if (mt) mt.count += moveAmt;
+      else placed.push({ item, col, row, count: moveAmt });
+      renderInventory();
+      saveState();
+    } else if (dragContext.from === 'crafting') {
+      const cIdx = craftingItems.indexOf(dragContext.entry);
+      if (cIdx < 0) { hidePreview(); return; }
+      if (!canDropInventory(item, col, row)) { hidePreview(); return; }
+      const src = craftingItems[cIdx];
+      const moveAmt = dragContext.whole ? src.count : 1;
+      src.count -= moveAmt;
+      if (src.count <= 0) craftingItems.splice(cIdx, 1);
+      const mt = mergeTargetIn(placed, null, item, col, row);
+      if (mt) mt.count += moveAmt;
+      else placed.push({ item, col, row, count: moveAmt });
+      renderInventory();
+      renderCrafting();
+      saveState();
+    }
+    hidePreview();
+  });
+
+  // ---------- 合成器渲染与拖动 ----------
+  const craftPreviewEl = document.createElement('div');
+  craftPreviewEl.className = 'preview';
+  craftingEl.appendChild(craftPreviewEl);
+
+  function craftCellAt(e) {
+    const r = craftingEl.getBoundingClientRect();
+    return {
+      col: Math.floor((e.clientX - r.left) / CRAFT_CELL),
+      row: Math.floor((e.clientY - r.top) / CRAFT_CELL)
+    };
+  }
+  function showCraftPreview(col, row, w, h) {
+    craftPreviewEl.style.display = 'block';
+    craftPreviewEl.style.left = col * CRAFT_CELL + 'px';
+    craftPreviewEl.style.top = row * CRAFT_CELL + 'px';
+    craftPreviewEl.style.width = w * CRAFT_CELL + 'px';
+    craftPreviewEl.style.height = h * CRAFT_CELL + 'px';
+  }
+  function hideCraftPreview() { craftPreviewEl.style.display = 'none'; }
+
+  function renderCrafting() {
+    craftingEl.querySelectorAll('.inv-item').forEach(n => n.remove());
+    craftingItems.forEach(p => {
+      const el = document.createElement('div');
+      el.className = 'inv-item';
+      el.draggable = true;
+      el.title = p.item.name;
+      el.style.background = p.item.color;
+      el.style.left = p.col * CRAFT_CELL + 1 + 'px';
+      el.style.top = p.row * CRAFT_CELL + 1 + 'px';
+      el.style.width = p.item.w * CRAFT_CELL - 2 + 'px';
+      el.style.height = p.item.h * CRAFT_CELL - 2 + 'px';
+      if (p.count > 1) {
+        const b = document.createElement('span');
+        b.className = 'count';
+        b.textContent = p.count;
+        el.appendChild(b);
+      }
+      bindDrag(el, p, 'crafting');
+      craftingEl.appendChild(el);
+    });
+    updateCraftResult();
+  }
+
+  craftingEl.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    if (!dragContext) return;
+    const item = ITEMS.find(i => i.id === dragContext.id);
+    if (!item) return;
+    const { col, row } = craftCellAt(e);
+    if (canDropCrafting(item, col, row)) showCraftPreview(col, row, item.w, item.h);
+    else hideCraftPreview();
+  });
+
+  craftingEl.addEventListener('drop', (e) => {
+    e.preventDefault();
+    if (!dragContext) return;
+    const item = ITEMS.find(i => i.id === dragContext.id);
+    if (!item) return;
+    const { col, row } = craftCellAt(e);
+    if (dragContext.from === 'inventory') {
+      const iIdx = placed.indexOf(dragContext.entry);
+      if (iIdx < 0 || !canDropCrafting(item, col, row)) { hideCraftPreview(); return; }
+      const src = placed[iIdx];
+      const moveAmt = dragContext.whole ? src.count : 1;
+      src.count -= moveAmt;
+      if (src.count <= 0) placed.splice(iIdx, 1);
+      const mt = mergeTargetIn(craftingItems, null, item, col, row);
+      if (mt) mt.count += moveAmt;
+      else craftingItems.push({ item, col, row, count: moveAmt });
+      renderInventory();
+      renderCrafting();
+      saveState();
+    } else if (dragContext.from === 'crafting') {
+      const cIdx = craftingItems.indexOf(dragContext.entry);
+      if (cIdx < 0 || !canDropCrafting(item, col, row)) { hideCraftPreview(); return; }
+      const src = craftingItems[cIdx];
+      const moveAmt = dragContext.whole ? src.count : 1;
+      src.count -= moveAmt;
+      if (src.count <= 0) craftingItems.splice(cIdx, 1);
+      const mt = mergeTargetIn(craftingItems, src, item, col, row);
+      if (mt) mt.count += moveAmt;
+      else craftingItems.push({ item, col, row, count: moveAmt });
+      renderCrafting();
+      saveState();
+    }
+    hideCraftPreview();
+  });
+
+  // ---------- 状态栏 ----------
+  function updateStatus() {
+    popEl.textContent = state.villagers + ' / ' + BUILDINGS.hut.capacity;
+    civEl.textContent = state.civ;
+    prodAmountEl.textContent = '+' + state.villagers;
+    const year = Math.floor((displayDay - 1) / 365) + 1;
+    const day = (displayDay - 1) % 365 + 1;
+    dateEl.textContent = `${year} 年 ${day} 天`;
+  }
+
+  // ---------- 游戏循环 ----------
+  let prodTimer = 0;
+  let popTimer = 0;
+  let saveTick = 0;
+
+  function tick() {
+    if (paused) { drawWorld(); return; }
+    const hut = BUILDINGS.hut;
+    prodTimer += speed;
+    if (prodTimer >= hut.interval) {
+      prodTimer = 0;
+      if (addItemToInventory(hut.produce.item, state.villagers)) {
+        state.civ += state.villagers;
+        saveState();
+      }
+    }
+    popTimer += speed;
+    if (popTimer >= 20 && state.villagers < hut.capacity) {
+      const spot = findVillagerSpot(state.hut, state.villagersCells);
+      if (spot) {
+        state.villagersCells.push(spot);
+        state.villagers++;
+      }
+      popTimer = 0;
+      saveState();
+    }
+    state.day += speed;
+    displayDay += 1;
+    updateStatus();
+    drawWorld();
+    saveTick++;
+    if (saveTick >= 5) {
+      saveTick = 0;
+      saveState();
+    }
+  }
+
+  // ---------- 启动 ----------
+  renderInventory();
+  renderCrafting();
+  updateStatus();
+  drawWorld();
+  setInterval(tick, 500);
+})();
+</script>
+</body>
+</html>
