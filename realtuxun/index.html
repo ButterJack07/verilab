@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f5efe5" />
+  <title>线下图寻 · City Hunt</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <section class="screen active" data-screen="home">
+      <div class="topline"><span class="brand-mark">⊙</span><span>OFFLINE GEO QUEST / 01</span><span class="status-dot">LIVE</span></div>
+      <div class="home-greeting"><div><span class="section-kicker">GOOD AFTERNOON, EXPLORER</span><h2>准备好出发了吗？</h2></div><button class="avatar-button" data-action="profile">寻</button></div>
+      <div class="player-strip"><div class="level-orb">Lv.<b>2</b></div><div class="player-info"><strong>城市漫游者</strong><span>距下一级还差 180 XP</span><div class="xp-line"><i></i></div></div><b class="streak">3 <small>日连续</small></b></div>
+      <div class="hero-copy compact-hero">
+        <p class="eyebrow">今日推荐模式</p>
+        <h1>经典<br><em>图寻</em></h1>
+        <p class="intro">看一眼陌生街景，锁定一个大概方向。真正的答案，藏在你脚下的城市里。</p>
+      </div>
+      <div class="hero-map" aria-hidden="true">
+        <div class="map-grid"></div><div class="route route-a"></div><div class="route route-b"></div>
+        <span class="map-label label-a">N 31°14'08.2"</span><span class="map-label label-b">E 121°28'31.7"</span>
+        <span class="pin pin-one">✦</span><span class="pin pin-two">+</span>
+        <div class="target-ring"><span>START<br><b>附近</b></span></div>
+      </div>
+      <div class="home-actions"><button class="primary-button" data-action="start">进入经典模式 <span>↗</span></button><button class="text-button" data-action="modes">更多模式 <span>→</span></button></div>
+      <div class="daily-card"><div><span class="card-label">每日任务 · 01</span><strong>完成一次经典图寻</strong><small>奖励 +50 XP · 今日进度 0/1</small></div><span class="task-icon">✦</span></div>
+      <nav class="bottom-nav"><button class="nav-item active" data-action="home"><span>⌂</span>首页</button><button class="nav-item" data-action="modes"><span>◆</span>模式</button><button class="nav-item" data-action="profile"><span>◉</span>我的</button></nav>
+    </section>
+
+    <section class="screen" data-screen="modes">
+      <header class="screen-header mode-header"><div><span class="section-kicker">CHOOSE YOUR QUEST</span><h2>探索模式</h2></div><span class="mode-count">03<br><small>MODES</small></span></header>
+      <div class="mode-list"><button class="mode-card featured" data-action="start"><span class="mode-number">01</span><span class="mode-art classic-art"><i>⌖</i><b>STREET<br>HUNT</b></span><span class="mode-copy"><strong>经典图寻</strong><small>街景线索 · 线下打卡</small><em>立即出发 ↗</em></span></button><button class="mode-card" data-action="locked"><span class="mode-number">02</span><span class="mode-art speed-art"><i>⚡</i></span><span class="mode-copy"><strong>闪电挑战</strong><small>限时 10 分钟内完成</small><em>即将开放</em></span><span class="lock">⌑</span></button><button class="mode-card" data-action="locked"><span class="mode-number">03</span><span class="mode-art team-art"><i>♧</i></span><span class="mode-copy"><strong>组队远征</strong><small>和朋友一起寻找城市</small><em>即将开放</em></span><span class="lock">⌑</span></button></div>
+      <div class="mode-tip"><span>✦</span><p><b>新手推荐：经典图寻</b><br>没有时间限制，先熟悉你的城市。</p></div>
+      <nav class="bottom-nav"><button class="nav-item" data-action="home"><span>⌂</span>首页</button><button class="nav-item active" data-action="modes"><span>◆</span>模式</button><button class="nav-item" data-action="profile"><span>◉</span>我的</button></nav>
+    </section>
+
+    <section class="screen" data-screen="profile">
+      <header class="profile-header"><span class="section-kicker">EXPLORER PROFILE</span><button class="settings-button">⚙</button><div class="profile-avatar">寻</div><h2>城市漫游者</h2><span class="profile-id">ID 240812 · Lv.2 探索学徒</span></header>
+      <div class="profile-progress"><div><span>探索经验</span><b>320 / 500 XP</b></div><div class="xp-line"><i></i></div></div>
+      <div class="profile-stats"><div><strong id="profileScore">0</strong><span>累计积分</span></div><div><strong>4</strong><span>完成探索</span></div><div><strong>3</strong><span>连续天数</span></div></div>
+      <div class="profile-section-title"><span>我的勋章</span><small>查看全部 →</small></div><div class="badges"><div class="badge earned"><i>✦</i><span>初次出发</span></div><div class="badge earned"><i>⌖</i><span>街角侦探</span></div><div class="badge"><i>⚡</i><span>闪电手</span></div><div class="badge"><i>♧</i><span>组队家</span></div></div>
+      <div class="history-card"><span class="card-label">最近探索</span><div class="history-row"><span class="history-pin">✓</span><div><strong>经典图寻 · 城市中心</strong><small>今天 · 500m 范围</small></div><b>+100</b></div><div class="history-row"><span class="history-pin">✓</span><div><strong>经典图寻 · 河岸区域</strong><small>昨天 · 200m 范围</small></div><b>+100</b></div></div>
+      <nav class="bottom-nav"><button class="nav-item" data-action="home"><span>⌂</span>首页</button><button class="nav-item" data-action="modes"><span>◆</span>模式</button><button class="nav-item active" data-action="profile"><span>◉</span>我的</button></nav>
+    </section>
+
+    <section class="screen" data-screen="setup">
+      <header class="screen-header"><button class="icon-button" data-action="home">←</button><div><span class="section-kicker">MISSION SETUP</span><h2>设定你的<br><strong>探索半径</strong></h2></div><span class="step-count">01<span>/03</span></span></header>
+      <div class="location-card"><div class="location-icon">⌖</div><div><span class="card-label">当前出发点</span><strong id="locationText">等待定位授权</strong><small id="locationHint">将以你的位置为圆心生成目标</small></div><button class="mini-button" data-action="locate">定位</button></div>
+      <div class="radius-block"><div class="block-heading"><span>选择活动范围</span><span class="mono">RADIUS</span></div><div class="radius-options"><button data-radius="200">200<span>m</span></button><button class="selected" data-radius="500">500<span>m</span></button><button data-radius="1000">1<span>km</span></button><button data-radius="2000">2<span>km</span></button></div><p class="helper">范围越大，线索难度越高。第一次探索建议从 500m 开始。</p></div>
+      <div class="brief-card"><span class="card-label">本局规则</span><div class="rule-row"><span>目标点</span><b>随机生成 1 个</b></div><div class="rule-row"><span>线索</span><b>街景画面 + 方位范围</b></div><div class="rule-row"><span>打卡</span><b>进入目标 80m 内</b></div></div>
+      <button class="primary-button full" data-action="generate">生成探索目标 <span>→</span></button>
+      <div class="safe-note">◎ 位置只用于本次游戏，不会被公开记录</div>
+    </section>
+
+    <section class="screen" data-screen="clue">
+      <header class="screen-header compact"><button class="icon-button" data-action="home">×</button><div><span class="section-kicker">TARGET FOUND / 02</span><h2>先看线索，<strong>再出发</strong></h2></div><div class="score-badge"><span>积分</span><b id="scoreClue">000</b></div></header>
+      <div class="clue-photo" id="cluePhoto"><div class="photo-overlay"><span class="streetview-tag">STREET VIEW / PREVIEW</span><span class="photo-stamp">线索 01</span></div><div class="street-scene"><div class="sun"></div><div class="building building-one"></div><div class="building building-two"></div><div class="tree tree-one"></div><div class="tree tree-two"></div><div class="road"></div><div class="crossing"></div></div></div>
+      <div class="clue-meta"><div><span class="card-label">画面线索</span><p id="clueText">街角附近有一面醒目的橙色墙面，留意低处的编号。</p></div><span class="clue-count">1 / 1</span></div>
+      <div class="direction-card"><div class="compass"><div class="needle"></div><span>N</span><i>目标</i></div><div class="direction-copy"><span class="card-label">大致方位</span><strong id="directionText">东北方向</strong><small>目标距离约 <b id="distanceHint">500m</b> 内</small></div><div class="accuracy">范围<br><b>±80m</b></div></div>
+      <button class="primary-button full" data-action="explore">开始导航探索 <span>↗</span></button>
+      <p class="fine-print">目标位置已隐藏。跟随方向提示，在现实世界中找到它。</p>
+    </section>
+
+    <section class="screen" data-screen="explore">
+      <header class="screen-header compact"><button class="icon-button" data-action="clue">←</button><div><span class="section-kicker">FIELD MODE / 03</span><h2>正在探索</h2></div><span class="live-pill"><i></i> GPS</span></header>
+      <div class="field-map"><div class="map-grid dark"></div><div class="field-roads"></div><div class="you-dot"><i></i><span>你在这里</span></div><div class="search-zone"><span>目标范围</span></div><div class="north">N<br><b>↑</b></div></div>
+      <div class="field-stats"><div><span class="card-label">当前方向</span><strong id="fieldDirection">东北</strong></div><div><span class="card-label">预计距离</span><strong id="fieldDistance">定位中</strong></div><div><span class="card-label">探索范围</span><strong id="fieldRadius">500m</strong></div></div>
+      <div class="field-tip"><span>✦</span><p><b>寻找橙色线索</b><br>保持手机朝向目标方向，抵达后点击下方打卡。</p></div>
+      <div class="explore-actions"><button class="secondary-button" data-action="locate">重新定位</button><button class="primary-button" data-action="checkin">我已抵达 <span>→</span></button></div>
+      <p class="fine-print">为了公平，打卡会使用设备的实时位置进行判断。</p>
+    </section>
+
+    <section class="screen" data-screen="result">
+      <div class="result-top"><span class="section-kicker">MISSION COMPLETE</span><div class="result-icon">✓</div><p class="eyebrow">你找到了城市里的答案</p><h2>探索<br><strong>完成</strong></h2></div>
+      <div class="score-card"><span>本次获得</span><strong>+<b id="earnedScore">100</b></strong><small>积分</small><div class="score-line"><i></i></div><div class="score-detail"><span>目标范围内抵达</span><b>打卡成功</b></div></div>
+      <div class="result-stats"><div><span class="card-label">总积分</span><strong id="totalScore">100</strong></div><div><span class="card-label">本局用时</span><strong id="timeUsed">--</strong></div><div><span class="card-label">探索半径</span><strong id="resultRadius">500m</strong></div></div>
+      <button class="primary-button full" data-action="newgame">再来一局 <span>↗</span></button><button class="text-button centered" data-action="leaderboard">查看探索记录 <span>→</span></button>
+      <div class="result-foot">KEEP WALKING / KEEP LOOKING</div>
+    </section>
+
+    <section class="screen" data-screen="about">
+      <header class="screen-header"><button class="icon-button" data-action="home">←</button><div><span class="section-kicker">HOW TO PLAY</span><h2>三步，开始<br><strong>图寻城市</strong></h2></div></header>
+      <div class="how-list"><div class="how-item"><b>01</b><div><strong>设定范围</strong><p>以你当前的位置为中心，选择 200m 到 2km 的探索半径。</p></div></div><div class="how-item"><b>02</b><div><strong>观察线索</strong><p>系统展示目标附近的街景画面与大致方位，答案不会直接出现。</p></div></div><div class="how-item"><b>03</b><div><strong>线下打卡</strong><p>真正走到目标附近，在 GPS 允许的范围内完成本次探索。</p></div></div></div>
+      <div class="about-quote">“最好的地图，<br>是你走过的路。”</div><button class="primary-button full" data-action="start">现在开始 <span>→</span></button>
+    </section>
+  </main>
+  <div class="toast" id="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>
