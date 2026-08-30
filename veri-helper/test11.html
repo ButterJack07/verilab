@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Test 11 · ElegantBook Quiet</title>
+  <link rel="stylesheet" href="template-preview.css">
+  <style>
+    body{background:#e9ece9;color:#292e2c}
+    .page{max-width:920px;padding:82px 105px 76px;border-top:3px solid #527d6d;box-shadow:0 3px 22px #263c3415}
+    .meta{color:#638274;letter-spacing:.18em}
+    .page h1{font-size:39px;font-weight:400;letter-spacing:-.025em;margin:25px 0 12px;color:#202a26}
+    .subtitle{font-size:14px;color:#7b8781;line-height:1.8;margin-bottom:48px}
+    .author-line{border-top:1px solid #c7cfca;border-bottom:1px solid #c7cfca;padding:13px 0;color:#748078;font:11px Arial,"Microsoft YaHei",sans-serif;display:flex;justify-content:space-between}
+    .page h2{font-size:20px;font-weight:400;color:#36483f;border:0;padding:0;margin-top:49px;margin-bottom:17px}
+    .page h2:before{content:"";display:inline-block;height:18px;border-left:3px solid #719b89;margin-right:11px;vertical-align:-3px}
+    .page p{line-height:2;font-size:13px;color:#596760}
+    .clean-table{border-collapse:collapse;width:100%;font:11px Arial,"Microsoft YaHei",sans-serif;margin:17px 0 8px}
+    .clean-table th,.clean-table td{border-bottom:1px solid #d1d8d3;padding:11px 12px;text-align:center}
+    .clean-table th{border-top:1px solid #aebbb3;background:#f2f4f1;color:#4e6259;font-weight:600}
+    .clean-table tr:last-child td{border-bottom:1px solid #aebbb3}
+    .code{background:#f5f6f3;border-left:2px solid #80a693;color:#47564f;font-size:11px;padding:19px 20px}
+    .result-line{display:flex;gap:28px;margin:25px 0;padding:15px 0;border-top:1px solid #d0d8d2;border-bottom:1px solid #d0d8d2;font:11px Arial,"Microsoft YaHei",sans-serif;color:#738078}
+    .result-line b{color:#3f7762;font-weight:600;margin-left:5px}
+    .wave{height:166px;background:#f8f9f6;border:0;border-top:1px solid #bfcac3;border-bottom:1px solid #bfcac3;padding:20px 10px;margin-top:17px}
+    .track{background:repeating-linear-gradient(90deg,transparent 0,transparent 59px,#e0e6e1 60px);border-top:1px solid #6f9a87}
+    .callout{background:transparent;border:0;border-top:1px solid #c5d0c8;border-bottom:1px solid #c5d0c8;border-left:0;border-radius:0;text-align:center;padding:18px 12px;color:#5b6d63;margin-top:26px}
+    .caption{font-family:Arial,"Microsoft YaHei",sans-serif;color:#8b958f}
+    .footer{margin-top:64px}
+    @media(max-width:650px){.page{padding:48px 28px}.page h1{font-size:30px}.author-line,.result-line{display:block;line-height:2}.author-line span,.result-line span{display:block}}
+  </style>
+</head>
+<body>
+  <nav class="nav"><b>TEST 11 / ELEGANTBOOK QUIET</b><span><a href="test10.html">← 上一个</a><a href="test12.html">下一个 →</a></span></nav>
+  <main class="page">
+    <div class="meta">DLCO-EXP · EXPERIMENT REPORT 02</div>
+    <h1>8-3 优先编码器的设计与仿真验证</h1>
+    <p class="subtitle">一个更克制、更适合正式提交的实验报告版式。去除多余装饰，将重点放在内容、数据与结论上。</p>
+    <div class="author-line"><span>数字逻辑实验 / Verilog HDL</span><span>2026 年 8 月</span></div>
+    <h2>摘要</h2>
+    <p>本文完成了一个带使能控制的 8-3 优先编码器设计。通过 Verilog HDL 描述组合逻辑，并使用 Icarus Verilog 对多组输入数据进行仿真，验证编码输出、有效标志和七段数码管译码结果。</p>
+    <div class="result-line"><span>设计顶层 <b>exp2</b></span><span>测试顶层 <b>exp2_tb</b></span><span>仿真状态 <b>PASS</b></span><span>仿真时长 <b>240 ns</b></span></div>
+    <h2>1. 设计说明</h2>
+    <p>当使能信号 en 有效时，模块按照从高位到低位的顺序判断输入 X，最高优先级的有效位被编码为三位二进制结果。当输入无效或模块未使能时，valid 输出为低电平。</p>
+    <pre class="code">casez(X)
+    8'b1???????: i = 3'd7;
+    8'b01??????: i = 3'd6;
+    8'b001?????: i = 3'd5;
+    default:     valid = 1'b0;
+endcase</pre>
+    <h2>2. 仿真结果</h2>
+    <table class="clean-table"><tr><th>测试序号</th><th>X</th><th>en</th><th>valid</th><th>led_code</th><th>F</th></tr><tr><td>01</td><td>80</td><td>1</td><td>1</td><td>7</td><td>78</td></tr><tr><td>02</td><td>40</td><td>1</td><td>1</td><td>6</td><td>02</td></tr><tr><td>03</td><td>20</td><td>1</td><td>1</td><td>5</td><td>12</td></tr><tr><td>04</td><td>00</td><td>1</td><td>0</td><td>0</td><td>7F</td></tr></table>
+    <p class="caption">表 1　测试输入及输出结果（十六进制显示）</p>
+    <h2>3. 仿真波形</h2>
+    <div class="wave"><div class="signal"><b>X[7:0]</b><div class="track"></div></div><div class="signal"><b>en</b><div class="track"></div></div><div class="signal"><b>valid</b><div class="track"></div></div><div class="signal"><b>F[6:0]</b><div class="track"></div></div></div>
+    <p class="caption">图 1　输入信号与输出信号的仿真波形</p>
+    <h2>4. 结论</h2>
+    <div class="callout">仿真结果与设计预期一致。优先编码器能够正确识别最高优先级输入，并输出相应编码及七段数码管显示信号。</div>
+    <div class="footer"><span>VeriLab Preview</span><span>test11 · elegantbook-quiet</span></div>
+  </main>
+</body>
+</html>

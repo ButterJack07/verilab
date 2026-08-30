@@ -12,6 +12,7 @@ $('#simTop').addEventListener('input', () => { $('#simTop').dataset.edited = 'tr
 document.querySelectorAll('[data-load]').forEach((button) => button.addEventListener('click', () => { const target = button.dataset.load === 'design' ? '#designCode' : '#testbenchCode'; $(target).value = examples[button.dataset.load].replace(/\n\+/g, '\n'); $(button.dataset.load === 'design' ? '#designTop' : '#simTop').dataset.edited = ''; syncTopNames(); showToast('示例代码已载入'); }));
 function toast(text) { const el = $('#toast'); el.textContent = text; el.classList.add('show'); clearTimeout(toast.timer); toast.timer = setTimeout(() => el.classList.remove('show'), 2400); }
 function esc(text) { return String(text ?? '').replace(/\\/g, '\\\\').replace(/\|/g, '\\|').replace(/\r?\n/g, '<br>'); }
+function tex(text) { return String(text ?? '').replace(/([\\{}$&#%_])/g, '\\$1').replace(/\^/g, '\\textasciicircum{}').replace(/~/g, '\\textasciitilde{}'); }
 function formatValue(value, radix = state.radix) {
   const raw = String(value ?? 'x').toLowerCase();
   if (!/^[01]+$/.test(raw) || raw.length <= 1) return raw;
@@ -29,24 +30,21 @@ function waveSvg(signals) {
   return `${parts.join('')}</svg>`;
 }
 function updateMarkdown() {
-  const r = state.result; let md = '# DLCO-EXP 仿真实验\n\n';
-  md += '## 设计代码\n\n```verilog\n' + $('#designCode').value + '\n```\n\n';
-  md += '## 激励代码\n\n```verilog\n' + $('#testbenchCode').value + '\n```\n\n';
-  if (!r) md += '*请先运行仿真，生成测试结果和波形。*\n';
+  const r = state.result; let latex = '\\documentclass[UTF8,a4paper,11pt]{ctexart}\n\\usepackage{geometry}\n\\usepackage{graphicx}\n\\usepackage{svg}\n\\usepackage{array}\n\\usepackage{longtable}\n\\usepackage{booktabs}\n\\usepackage{float}\n\\usepackage{xcolor}\n\\usepackage{fancyhdr}\n\\usepackage{titlesec}\n\\geometry{top=2.6cm,bottom=2.4cm,left=2.7cm,right=2.7cm}\n\\definecolor{reportgreen}{HTML}{527D6D}\n\\definecolor{reportgray}{HTML}{596760}\n\\pagestyle{fancy}\n\\fancyhf{}\n\\lhead{\\textcolor{reportgreen}{DLCO-EXP}}\n\\rhead{\\textcolor{reportgray}{实验报告}}\n\\cfoot{\\thepage}\n\\renewcommand{\\headrulewidth}{0.4pt}\n\\makeatletter\n\\renewcommand{\\maketitle}{\\begin{center}\\textcolor{reportgreen}{\\small\\MakeUppercase{DLCO-EXP \\textperiodcentered{} EXPERIMENT REPORT}}\\par\\vspace{1.2em}{\\LARGE\\bfseries\\@title\\par}\\vspace{0.6em}{\\small\\textcolor{reportgray}{数字逻辑实验 \\textbar{} Verilog HDL}}\\end{center}\\vspace{1.5em}\\hrule\\vspace{1em}}\n\\makeatother\n\\title{8-3 优先编码器的设计与仿真验证}\n\\author{}\n\\date{}\n\\begin{document}\n\\maketitle\n\\section{设计代码}\n\\begin{verbatim}\n' + $('#designCode').value + '\n\\end{verbatim}\n\n\\section{激励代码}\n\\begin{verbatim}\n' + $('#testbenchCode').value + '\n\\end{verbatim}\n\n';
+  if (!r) latex += '\\textit{请先运行仿真，生成测试结果和波形。}\n';
   else {
-    md += `## 仿真结果\n\n- 仿真状态：${r.success ? '通过' : '失败'}\n- 设计顶层：\`${esc(r.designTop)}\`\n- 仿真顶层：\`${esc(r.simTop)}\`\n- 仿真时长：${esc(r.duration)}\n\n`;
-    md += '### 测试用例表\n\n';
+    latex += `\\section{仿真结果}\n\\begin{itemize}\n\\item 仿真状态：${r.success ? '通过' : '失败'}\n\\item 设计顶层：\\texttt{${tex(r.designTop)}}\n\\item 仿真顶层：\\texttt{${tex(r.simTop)}}\n\\item 仿真时长：${tex(r.duration)}\n\\end{itemize}\n\n\\subsection{测试用例表}\n`;
     const valueNames = Object.keys(r.tests?.find((test) => test.values)?.values || {});
-    if (valueNames.length) { md += `| 序号 | 时间 | ${valueNames.join(' | ')} | 结果 |\n| --- | --- | ${valueNames.map(() => '---').join(' | ')} | --- |\n`; (r.tests || []).forEach((t, i) => { md += `| ${i + 1} | ${esc(t.time)} | ${valueNames.map((name) => esc(formatValue(t.values?.[name] ?? '-'))).join(' | ')} | ${t.pass ? 'PASS' : 'INFO'} |\n`; }); }
-    else { md += '| 序号 | 时间 | 信号快照 | 结果 |\n| --- | --- | --- | --- |\n'; (r.tests || []).forEach((t, i) => { md += `| ${i + 1} | ${esc(t.time)} | ${esc(t.message)} | ${t.pass ? 'PASS' : 'INFO'} |\n`; }); }
-    if (!r.tests?.length) md += '| 1 | - | 未检测到 $display 测试记录 | INFO |\n';
-    md += '\n### 仿真波形\n\n';
-    if (r.signals?.length) md += '波形图已解析，请将导出的 `waveform.svg` 与本 Markdown 放在同一目录。\n\n![仿真波形](waveform.svg)\n\n';
-    else md += '*未生成 VCD 波形。请检查 Testbench 或仿真日志。*\n';
-    md += '### 仿真日志\n\n```text\n' + (r.log || '') + '\n```\n';
+    if (valueNames.length) { latex += `\\begin{longtable}{|c|c|${valueNames.map(() => 'c|').join('')}c|}\n\\hline\n序号 & 时间 & ${valueNames.map(tex).join(' & ')} & 结果 \\\\\n\\hline\n`; (r.tests || []).forEach((t, i) => { latex += `${i + 1} & ${tex(t.time)} & ${valueNames.map((name) => tex(formatValue(t.values?.[name] ?? '-'))).join(' & ')} & ${t.pass ? 'PASS' : 'INFO'} \\\\\n\\hline\n`; }); latex += '\\end{longtable}\n'; }
+    else latex += '\\textit{未检测到 VCD 测试快照。}\n';
+    latex += '\\subsection{仿真波形}\n';
+    if (r.signals?.length) latex += '请将页面导出的 \\texttt{waveform.svg} 与本文件放在同一目录，并使用支持 SVG 的 LaTeX 环境编译。\\begin{figure}[H]\\centering\\includesvg[width=\\textwidth]{waveform}\\caption{输入信号与输出信号的仿真波形}\\end{figure}\n';
+    else latex += '\\textit{未生成 VCD 波形。请检查 Testbench 或仿真日志。}\n';
+    latex += '\\subsection{仿真日志}\n\\begin{verbatim}\n' + (r.log || '') + '\\end{verbatim}\n';
   }
-  $('#markdown').textContent = md; $('#stats').textContent = `${r?.tests?.length || 0} 个结果 · ${r?.signals?.length || 0} 个信号`;
+  latex += '\\end{document}\n'; $('#latexSource').textContent = latex; $('#latexRender').innerHTML = renderLatexPreview(latex, r); $('#stats').textContent = `${r?.tests?.length || 0} 个结果 · ${r?.signals?.length || 0} 个信号`;
 }
+function renderLatexPreview(latex, result) { let html = '<div class="paper"><h1>DLCO-EXP 仿真实验</h1><p class="date">VeriLab · LaTeX 预览</p><h2>设计代码</h2><pre>' + esc($('#designCode').value) + '</pre><h2>激励代码</h2><pre>' + esc($('#testbenchCode').value) + '</pre>'; if (result) { html += `<h2>仿真结果</h2><p>仿真状态：<b>${result.success ? '通过' : '失败'}</b>　设计顶层：<code>${esc(result.designTop)}</code>　仿真顶层：<code>${esc(result.simTop)}</code></p><h3>测试用例表</h3>`; const names = Object.keys(result.tests?.find((test) => test.values)?.values || {}); if (names.length) { html += '<table><thead><tr><th>序号</th><th>时间</th>' + names.map((name) => `<th>${esc(name)}</th>`).join('') + '<th>结果</th></tr></thead><tbody>' + result.tests.map((test, i) => `<tr><td>${i + 1}</td><td>${esc(test.time)}</td>${names.map((name) => `<td>${esc(formatValue(test.values?.[name] || '-'))}</td>`).join('')}<td>${test.pass ? 'PASS' : 'INFO'}</td></tr>`).join('') + '</tbody></table>'; } if (result.signals?.length) html += '<h3>仿真波形</h3><p class="caption">波形 SVG 可通过右上角按钮导出。</p>'; } return `${html}</div>`; }
 function renderResult(r) {
   state.result = r; $('#runStatus').textContent = r.success ? '编译与仿真完成' : '编译或仿真失败'; const badge = $('#resultBadge'); badge.textContent = r.success ? '通过' : '失败'; badge.className = `badge ${r.success ? 'success' : 'fail'}`; $('#log').textContent = r.log || '无日志';
   const rows = r.tests?.length ? r.tests : [{ time: '-', message: '未检测到测试记录', pass: true }]; const valueNames = Object.keys(rows.find((test) => test.values)?.values || {}); $('#resultTable').className = 'result-table'; $('#resultTable').innerHTML = `<table><thead><tr><th>序号</th><th>时间</th>${valueNames.map((name) => `<th>${esc(name)}</th>`).join('')}<th>状态</th></tr></thead><tbody>${rows.map((t, i) => `<tr><td>${i + 1}</td><td>${t.time || '-'}</td>${valueNames.map((name) => `<td>${esc(formatValue(t.values?.[name] ?? '-'))}</td>`).join('')}<td class="${t.pass ? 'pass' : 'fail'}">${t.pass ? 'PASS' : 'INFO'}</td></tr>`).join('')}</tbody></table>`;
@@ -54,7 +52,9 @@ function renderResult(r) {
 }
 ['designCode', 'testbenchCode'].forEach((id) => $(`#${id}`).addEventListener('input', () => { syncTopNames(); updateMarkdown(); }));
 $('#runButton').addEventListener('click', async () => { const button = $('#runButton'); button.disabled = true; $('#runStatus').textContent = '正在调用 Icarus Verilog…'; $('#log').textContent = '$ 编译和仿真进行中…'; syncTopNames(); try { const response = await fetch('/api/simulate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ design: $('#designCode').value, testbench: $('#testbenchCode').value, designTop: $('#designTop').value, simTop: $('#simTop').value, duration: `${$('#simTime').value}${$('#simUnit').value}` }) }); const result = await response.json(); if (!response.ok) throw new Error(result.error || `仿真失败（HTTP ${response.status}）`); renderResult(result); toast('仿真完成，已更新结果'); } catch (error) { $('#resultBadge').textContent = '错误'; $('#resultBadge').className = 'badge fail'; $('#runStatus').textContent = error.message; $('#log').textContent = error.message; toast(error.message.includes('iverilog') ? 'Icarus Verilog 运行失败' : '本地仿真服务发生错误'); } finally { button.disabled = false; } });
-$('#copyButton').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('#markdown').textContent); toast('Markdown 已复制'); } catch { toast('复制失败，请手动复制预览内容'); } });
-$('#downloadButton').addEventListener('click', () => { const blob = new Blob([$('#markdown').textContent], { type: 'text/markdown;charset=utf-8' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = 'dlco-exp-report.md'; link.click(); URL.revokeObjectURL(url); toast('Markdown 文件已导出'); });
+$('#copyButton').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('#latexSource').textContent); toast('LaTeX 已复制'); } catch { toast('复制失败，请手动复制源码'); } });
+$('#downloadButton').addEventListener('click', () => { const blob = new Blob([$('#latexSource').textContent], { type: 'application/x-tex;charset=utf-8' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = 'dlco-exp-report.tex'; link.click(); URL.revokeObjectURL(url); toast('LaTeX 文件已导出'); });
+$('#sourceTab').addEventListener('click', () => { $('#latexSource').style.display = 'block'; $('#latexRender').style.display = 'none'; $('#sourceTab').classList.add('active'); $('#renderTab').classList.remove('active'); });
+$('#renderTab').addEventListener('click', () => { $('#latexSource').style.display = 'none'; $('#latexRender').style.display = 'block'; $('#renderTab').classList.add('active'); $('#sourceTab').classList.remove('active'); });
 $('#radixSelect').addEventListener('change', (event) => { state.radix = event.target.value; if (state.result) renderResult(state.result); else updateMarkdown(); });
 $('#exportPng').addEventListener('click', () => { if (!state.result?.signals?.length) return; const blob = new Blob([waveSvg(state.result.signals)], { type: 'image/svg+xml;charset=utf-8' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = 'waveform.svg'; link.click(); URL.revokeObjectURL(url); toast('SVG 波形已导出'); }); syncTopNames(); updateMarkdown();
