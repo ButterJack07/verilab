@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>VeriLab · Verilog 仿真助手</title><link rel="icon" href="data:,"><link rel="stylesheet" href="styles.css">
+</head>
+<body><div class="glow glow-a"></div><div class="glow glow-b"></div>
+<header><a class="brand" href="#"><b>V</b><span><strong>VeriLab</strong><small>VERILOG SIMULATION NOTEBOOK</small></span></a><span class="local"><i></i> LOCAL SIMULATOR · IVERILOG</span></header>
+<main>
+  <section class="hero"><label>DLCO-EXP / QUICK LAB</label><h1>写下代码，<em>看见结果。</em></h1><p>输入设计模块与激励代码，在本地运行 Icarus Verilog 仿真，自动整理测试结果和波形，并导出 Markdown 实验素材。</p></section>
+  <section class="code-grid">
+    <article class="card code-card"><div class="card-title"><div><span>01</span><h2>Verilog 设计代码</h2><p>被测模块（DUT）</p></div><button class="ghost" data-load="design">载入示例</button></div><textarea id="designCode" spellcheck="false" aria-label="Verilog 设计代码"></textarea></article>
+    <article class="card code-card"><div class="card-title"><div><span>02</span><h2>激励 / Testbench</h2><p>时钟、输入信号与测试用例</p></div><button class="ghost" data-load="testbench">载入示例</button></div><textarea id="testbenchCode" spellcheck="false" aria-label="激励测试代码"></textarea></article>
+  </section>
+  <section class="control card"><div class="control-fields"><label>设计顶层 <input id="designTop" value="counter"></label><label>仿真顶层 <input id="simTop" value="counter_tb"></label><label>仿真时长 <input id="simTime" value="1000"></label><label>单位 <select id="simUnit"><option>ns</option><option>us</option><option>ms</option></select></label></div><button id="runButton" class="run">▶ 开始仿真</button></section>
+<section class="result-grid"><article class="card result-card"><div class="card-title"><div><span>03</span><h2>测试结果</h2><p id="runStatus">等待运行仿真</p></div><span id="resultBadge" class="badge">未运行</span></div><div id="resultTable" class="result-table empty"><span>运行仿真后显示测试记录</span></div><pre id="log" class="log">$ 运行日志将在这里显示</pre></article><article class="card wave-card"><div class="card-title"><div><span>04</span><h2>仿真波形</h2><p>从 VCD 波形提取数字信号</p></div><div class="wave-actions"><select id="radixSelect" aria-label="显示进制"><option value="bin">BIN 二进制</option><option value="hex">HEX 十六进制</option><option value="dec">DEC 十进制</option></select><button id="exportPng" class="ghost" disabled>导出 SVG</button></div></div><div id="waveform" class="waveform empty"><span>等待波形数据</span></div></article></section>
+  <section class="export"><div><label>REPORT OUTPUT</label><h2>导出实验素材</h2><p>将代码摘要、测试表格和波形图整理成 Markdown。</p></div><div class="export-actions"><button id="copyButton" class="secondary">复制 Markdown</button><button id="downloadButton" class="primary">导出 .md ↓</button></div></section>
+  <div class="markdown-box"><div><i></i>实时 Markdown 预览 <small id="stats">0 个结果 · 0 个信号</small></div><pre id="markdown"></pre></div><footer>VeriLab / local-first experiment assistant</footer>
+</main><div id="toast" class="toast"></div><script src="app.js"></script></body></html>
