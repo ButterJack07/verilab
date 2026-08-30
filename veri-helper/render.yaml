@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: verilab
+    runtime: docker
+    rootDir: veri-helper
+    plan: free
+    healthCheckPath: /health

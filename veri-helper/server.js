@@ -4,7 +4,7 @@ const os = require('os');
 const path = require('path');
 const { execFile, execFileSync } = require('child_process');
 
-const port = 4173;
+const port = Number(process.env.PORT || 4173);
 const root = __dirname;
 
 function findIcarus() {
@@ -16,7 +16,8 @@ function findIcarus() {
   const installed = candidates.find((candidate) => fs.existsSync(candidate));
   if (installed) return installed;
   try {
-    return execFileSync(process.platform === 'win32' ? 'where.exe' : 'which', ['iverilog'], { encoding: 'utf8' }).split(/\r?\n/).find(Boolean) || null;
+    const lookup = process.platform === 'win32' ? 'where.exe' : 'which';
+    return execFileSync(lookup, ['iverilog'], { encoding: 'utf8', windowsHide: true }).split(/\r?\n/).find(Boolean) || null;
   } catch {
     return null;
   }
@@ -25,7 +26,12 @@ function findIcarus() {
 function findVvp(iverilog) {
   const candidate = path.join(path.dirname(iverilog), process.platform === 'win32' ? 'vvp.exe' : 'vvp');
   if (fs.existsSync(candidate)) return candidate;
-  return process.platform === 'win32' ? 'vvp.exe' : 'vvp';
+  try {
+    const lookup = process.platform === 'win32' ? 'where.exe' : 'which';
+    return execFileSync(lookup, [process.platform === 'win32' ? 'vvp.exe' : 'vvp'], { encoding: 'utf8', windowsHide: true }).split(/\r?\n/).find(Boolean) || null;
+  } catch {
+    return null;
+  }
 }
 
 function resolveSimulationTop(code, requested) {
@@ -111,6 +117,7 @@ function readBody(req) {
 }
 
 const server = http.createServer(async (req, res) => {
+  if (req.method === 'GET' && req.url === '/health') return json(res, 200, { ok: true, service: 'verilab' });
   if (req.method === 'GET' && req.url === '/favicon.ico') { res.writeHead(204); return res.end(); }
   if (req.method === 'POST' && req.url === '/api/simulate') {
     try {
@@ -129,7 +136,9 @@ const server = http.createServer(async (req, res) => {
       fs.writeFileSync(path.join(dir, 'testbench.v'), testbench, 'utf8');
       const compile = await run(iverilog, ['-g2012', '-o', 'sim.out', '-s', simTop, 'design.v', 'testbench.v'], dir);
       if (compile.error) return json(res, 422, { success: false, error: `iverilog 编译失败：${compile.stderr || compile.error.message}`, log: compile.stderr || compile.error.message });
-      const sim = await run(findVvp(iverilog), ['sim.out'], dir);
+      const vvp = findVvp(iverilog);
+      if (!vvp) return json(res, 422, { success: false, error: '找不到 vvp。请确认本地 Icarus Verilog 安装完整，或 Docker 镜像已安装 iverilog。' });
+      const sim = await run(vvp, ['sim.out'], dir);
       const log = `${compile.stdout}${compile.stderr}${sim.stdout}${sim.stderr}${sim.error ? `\n[VeriLab] vvp 执行失败：${sim.error.message}` : ''}`;
       const vcdPath = path.join(dir, 'wave.vcd');
       const parsed = fs.existsSync(vcdPath) ? parseVcd(fs.readFileSync(vcdPath, 'utf8')) : { signals: [], snapshots: [] };
