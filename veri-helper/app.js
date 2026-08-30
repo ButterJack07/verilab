@@ -3,7 +3,7 @@ const examples = {
   testbench: `\`timescale 1ns/1ps\n+module counter_tb;\n+  reg clk = 0, rst = 1, enable = 0;\n+  wire [3:0] count;\n+  counter dut(.clk(clk), .rst(rst), .enable(enable), .count(count));\n+  always #5 clk = ~clk;\n+  initial begin\n+    $dumpfile("wave.vcd"); $dumpvars(0, counter_tb);\n+    #12 rst = 0; enable = 1;\n+    #50 enable = 0;\n+    #10 $finish;\n+  end\n+endmodule`
 };
 const $ = (s) => document.querySelector(s);
-const state = { result: null };
+const state = { result: null, radix: 'hex' };
 $('#designCode').value = examples.design.replace(/\n\+/g, '\n'); $('#testbenchCode').value = examples.testbench.replace(/\n\+/g, '\n');
 function inferTop(code, fallback) { const source = String(code || '').replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, ''); const modules = [...source.matchAll(/\bmodule\s+(?:automatic\s+|static\s+)?([A-Za-z_$][\w$]*)\b/g)].map((match) => match[1]); if (!modules.length) return fallback; const tb = modules.find((module) => /(?:^|[_$])tb(?:$|[_$])/i.test(module) || /testbench/i.test(module)); if (tb) return tb; const instantiated = new Set(); modules.forEach((module) => { const body = source.slice(source.indexOf(`module ${module}`)); modules.filter((candidate) => candidate !== module).forEach((candidate) => { if (new RegExp(`\\b${candidate}\\s*(?:#\\s*\\([^;]*\\)\\s*)?\\w+\\s*\\(`).test(body)) instantiated.add(candidate); }); }); return modules.find((module) => !instantiated.has(module)) || modules[0]; }
 function syncTopNames() { const design = inferTop($('#designCode').value, 'counter'); const testbench = inferTop($('#testbenchCode').value, 'counter_tb'); if (!$('#designTop').dataset.edited) $('#designTop').value = design; if (!$('#simTop').dataset.edited) $('#simTop').value = testbench; }
@@ -12,21 +12,12 @@ $('#simTop').addEventListener('input', () => { $('#simTop').dataset.edited = 'tr
 document.querySelectorAll('[data-load]').forEach((button) => button.addEventListener('click', () => { const target = button.dataset.load === 'design' ? '#designCode' : '#testbenchCode'; $(target).value = examples[button.dataset.load].replace(/\n\+/g, '\n'); $(button.dataset.load === 'design' ? '#designTop' : '#simTop').dataset.edited = ''; syncTopNames(); showToast('示例代码已载入'); }));
 function toast(text) { const el = $('#toast'); el.textContent = text; el.classList.add('show'); clearTimeout(toast.timer); toast.timer = setTimeout(() => el.classList.remove('show'), 2400); }
 function esc(text) { return String(text ?? '').replace(/\\/g, '\\\\').replace(/\|/g, '\\|').replace(/\r?\n/g, '<br>'); }
-function formatValue(value) {
+function formatValue(value, radix = state.radix) {
   const raw = String(value ?? 'x').toLowerCase();
   if (!/^[01]+$/.test(raw) || raw.length <= 1) return raw;
-  const radix = $('#radixSelect').value;
-  if (radix === 'hex') return `0x${parseInt(raw, 2).toString(16).toUpperCase()}`;
+  if (radix === 'hex') return parseInt(raw, 2).toString(16).toUpperCase();
   if (radix === 'dec') return String(parseInt(raw, 2));
   return raw;
-}
-function waveSvg(signals) {
-  const width = 920; const left = 120; const top = 24; const rowHeight = 36;
-  const max = Math.max(...signals.flatMap((s) => s.changes.map((c) => c.time)), 1); const height = top + signals.length * rowHeight + 28;
-  const x = (time) => left + (time / max) * (width - left - 20); const out = [`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><rect width="100%" height="100%" fill="#fbfcf8"/><style>text{font:11px monospace;fill:#286c5e}.grid{stroke:#dce8e0}.hi{fill:#f8e3ca;stroke:#df8c4c}.lo{fill:#dcefe7;stroke:#5c9e91}</style>`];
-  for (let i = 0; i <= 10; i += 1) { const tick = left + ((width - left - 20) * i) / 10; out.push(`<line class="grid" x1="${tick}" y1="12" x2="${tick}" y2="${height - 18}"/><text x="${tick + 2}" y="${height - 5}">${Math.round(max * i / 10)} ns</text>`); }
-  signals.forEach((signal, row) => { const y = top + row * rowHeight; out.push(`<text x="8" y="${y + 14}">${esc(signal.leaf || signal.name)}</text>`); signal.changes.forEach((change, i) => { const next = signal.changes[i + 1]?.time ?? max; const x1 = x(change.time); const x2 = Math.max(x(next), x1 + 1); const cls = !['0', 'x', 'z'].includes(String(change.value).toLowerCase()) ? 'hi' : 'lo'; out.push(`<rect class="${cls}" x="${x1}" y="${y + 2}" width="${x2 - x1}" height="16"/><text x="${x1 + 3}" y="${y + 14}">${esc(formatValue(change.value))}</text>`); }); });
-  return `${out.join('')}</svg>`;
 }
 function waveSvg(signals) {
   const width = 920; const left = 120; const right = 20; const top = 28; const rowHeight = 38;
@@ -34,7 +25,7 @@ function waveSvg(signals) {
   const height = top + signals.length * rowHeight + 30; const x = (time) => left + (time / max) * (width - left - right);
   const parts = [`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><rect width="100%" height="100%" fill="#fbfcf8"/><style>text{font-family:monospace;font-size:11px;fill:#286c5e}.grid{stroke:#dce8e0;stroke-width:1}.high{stroke:#df8c4c;fill:#f8e3ca}.low{stroke:#5c9e91;fill:#dcefe7}.axis{fill:#789087}</style>`];
   for (let tick = 0; tick <= 10; tick += 1) { const tickX = left + ((width - left - right) * tick) / 10; parts.push(`<line class="grid" x1="${tickX}" y1="${top - 10}" x2="${tickX}" y2="${height - 20}"/><text class="axis" x="${tickX + 2}" y="${height - 6}">${Math.round((max * tick) / 10)} ns</text>`); }
-  signals.forEach((signal, row) => { const y = top + row * rowHeight; parts.push(`<text x="8" y="${y + 15}">${esc(signal.leaf || signal.name)}</text>`); signal.changes.forEach((change, index) => { const next = signal.changes[index + 1]?.time ?? max; const x1 = x(change.time); const x2 = Math.max(x(next), x1 + 1); const high = !['0', 'x', 'z'].includes(String(change.value).toLowerCase()); parts.push(`<rect class="${high ? 'high' : 'low'}" x="${x1}" y="${y + 3}" width="${Math.max(1, x2 - x1)}" height="16"/><text x="${x1 + 3}" y="${y + 15}">${esc(change.value)}</text>`); }); });
+  signals.forEach((signal, row) => { const y = top + row * rowHeight; parts.push(`<text x="8" y="${y + 15}">${esc(signal.leaf || signal.name)}</text>`); signal.changes.forEach((change, index) => { const next = signal.changes[index + 1]?.time ?? max; const x1 = x(change.time); const x2 = Math.max(x(next), x1 + 1); const high = !['0', 'x', 'z'].includes(String(change.value).toLowerCase()); parts.push(`<rect class="${high ? 'high' : 'low'}" x="${x1}" y="${y + 3}" width="${Math.max(1, x2 - x1)}" height="16"/><text x="${x1 + 3}" y="${y + 15}">${esc(formatValue(change.value))}</text>`); }); });
   return `${parts.join('')}</svg>`;
 }
 function updateMarkdown() {
@@ -65,5 +56,5 @@ function renderResult(r) {
 $('#runButton').addEventListener('click', async () => { const button = $('#runButton'); button.disabled = true; $('#runStatus').textContent = '正在调用 Icarus Verilog…'; $('#log').textContent = '$ 编译和仿真进行中…'; syncTopNames(); try { const response = await fetch('/api/simulate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ design: $('#designCode').value, testbench: $('#testbenchCode').value, designTop: $('#designTop').value, simTop: $('#simTop').value, duration: `${$('#simTime').value}${$('#simUnit').value}` }) }); const result = await response.json(); if (!response.ok) throw new Error(result.error || `仿真失败（HTTP ${response.status}）`); renderResult(result); toast('仿真完成，已更新结果'); } catch (error) { $('#resultBadge').textContent = '错误'; $('#resultBadge').className = 'badge fail'; $('#runStatus').textContent = error.message; $('#log').textContent = error.message; toast(error.message.includes('iverilog') ? 'Icarus Verilog 运行失败' : '本地仿真服务发生错误'); } finally { button.disabled = false; } });
 $('#copyButton').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('#markdown').textContent); toast('Markdown 已复制'); } catch { toast('复制失败，请手动复制预览内容'); } });
 $('#downloadButton').addEventListener('click', () => { const blob = new Blob([$('#markdown').textContent], { type: 'text/markdown;charset=utf-8' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = 'dlco-exp-report.md'; link.click(); URL.revokeObjectURL(url); toast('Markdown 文件已导出'); });
-$('#radixSelect').addEventListener('change', () => { if (state.result) renderResult(state.result); });
+$('#radixSelect').addEventListener('change', (event) => { state.radix = event.target.value; if (state.result) renderResult(state.result); else updateMarkdown(); });
 $('#exportPng').addEventListener('click', () => { if (!state.result?.signals?.length) return; const blob = new Blob([waveSvg(state.result.signals)], { type: 'image/svg+xml;charset=utf-8' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = 'waveform.svg'; link.click(); URL.revokeObjectURL(url); toast('SVG 波形已导出'); }); syncTopNames(); updateMarkdown();

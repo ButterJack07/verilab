@@ -51,8 +51,9 @@ function parseVcd(text) {
       const match = value.match(/^\$var\s+\S+\s+(\d+)\s+(\S+)\s+(.+?)\s+\$end$/);
       if (match) {
         const width = Number(match[1]);
-        const fullName = match[3].replace(/\s+\[.*$/, '');
-        ids[match[2]] = { width, name: fullName, leaf: fullName.split('.').pop() };
+        const fullName = match[3].replace(/\s+\[.*$/, '').trim();
+        if (!fullName) return;
+        ids[match[2]] = { width, name: fullName, leaf: fullName.split('.').pop() || fullName };
         changes[match[2]] = [];
       }
       if (value === '$enddefinitions $end') inHeader = false;
@@ -65,7 +66,8 @@ function parseVcd(text) {
     const signalValue = vector ? vector[1] : scalar && scalar[1];
     if (id && ids[id] && changes[id]) {
       const signal = ids[id];
-      const event = { id, time, name: signal.name, leaf: signal.leaf, value: signalValue, depth: signal.name.split('.').length };
+      const signalName = String(signal.name || signal.leaf || id);
+      const event = { id, time, name: signalName, leaf: String(signal.leaf || signalName).split('.').pop(), value: signalValue, depth: signalName.split('.').length };
       changes[id].push({ time, value: signalValue });
       events.push(event);
     }
@@ -74,8 +76,10 @@ function parseVcd(text) {
   const selected = {};
   Object.keys(changes).forEach((id) => {
     const signal = ids[id];
+    if (!signal || !signal.leaf) return;
     const current = selected[signal.leaf];
-    if (!current || signal.name.split('.').length < current.name.split('.').length) selected[signal.leaf] = { id, signal };
+    const signalName = String(signal.name || signal.leaf || id);
+    if (!current || signalName.split('.').length < String(current.signal.name || current.signal.leaf || '').split('.').length) selected[signal.leaf] = { id, signal: { ...signal, name: signalName } };
   });
   const selectedIds = new Set(Object.values(selected).map((item) => item.id));
   const signals = Object.values(selected).map(({ id, signal }) => ({ name: signal.name, leaf: signal.leaf, changes: changes[id] }));
