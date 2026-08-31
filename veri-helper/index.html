@@ -24,7 +24,7 @@
         <div class="form-grid">
           <label>实验编号（阿拉伯数字 1-20）<input id="reportNumber" value="1" inputmode="numeric" pattern="[0-9]{1,2}" min="1" max="20" placeholder="请输入 1-20"></label>
           <label>实验名称<input id="reportName" value="选择器与编码器" placeholder="例如：选择器与编码器"></label>
-          <label>课程名称<input id="courseName" value="数字逻辑课程实验"></label>
+          <label>课程名称<input id="courseName" value="数字逻辑与计算机组成实验"></label>
           <label>姓名<input id="studentName" placeholder="请输入姓名"></label>
           <label>班级<input id="studentClass" placeholder="请输入班级"></label>
           <label>学号<input id="studentId" placeholder="请输入学号"></label>
@@ -63,6 +63,7 @@
     </section>
   </main>
 
+  <div id="clipboardReceiver" class="clipboard-receiver" contenteditable="true" aria-hidden="true"></div>
   <div id="toast" class="toast"></div>
   <script src="app.js"></script>
 </body>
