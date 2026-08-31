@@ -44,12 +44,12 @@
 
       <section id="experimentUnits" class="experiment-section experiment-units">
         <div class="section-head"><div><label>EXPERIMENT UNITS</label><h2>实验内容和结果</h2><p>在这里新建并填写 1-1、1-2 等子实验</p></div><button id="addExperiment" type="button" class="primary add-experiment-button">＋ 新建子实验</button></div>
-        <div id="experiments"><div class="empty-experiments">正在加载子实验编辑区……</div></div>
+        <div id="experiments"><div class="empty-experiments"><strong>子实验编辑区</strong><span>点击右上角“＋ 新建子实验”开始填写</span></div></div>
       </section>
 
       <article class="card report-info report-closing">
         <div class="card-title"><div><span>04</span><h2>实验后置内容</h2><p>完成所有子实验后填写总结性内容</p></div></div>
-        <label class="wide-field">问题与分析<textarea id="problems" rows="4" placeholder="每行填写一个问题或分析要点"></textarea></label>
+          <div class="problem-section"><div class="problem-section-head"><div><label>PROBLEM LOG</label><h3>问题与分析</h3><p>每个问题独立记录问题内容、可选截图和解决方法</p></div><button id="addProblem" type="button" class="secondary">＋ 添加问题</button></div><div id="problems"><div class="empty-problems">尚未添加问题，点击“添加问题”开始记录。</div></div></div>
         <label class="wide-field">实验总结与启示<textarea id="summary" rows="4" placeholder="每行填写一个总结或启示"></textarea></label>
         <label class="wide-field">意见与建议<textarea id="reflection" rows="4" placeholder="每行填写一条意见或建议"></textarea></label>
       </article>
